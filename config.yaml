@@ -1,0 +1,14 @@
+credentials:
+  usernames:
+    admin:
+      email: admin@example.com
+      name: 관리자
+      password: $2b$12$pdQwXcQBfCZoDSRuzYDW9exI0k6Vfpafd.OaP/6M5vduOMPHBWciC
+
+cookie:
+  name: jarvis_morning_bot
+  key: some_random_secret_key_change_this
+  expiry_days: 30
+
+pre-authorized:
+  emails: []

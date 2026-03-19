@@ -1,0 +1,8 @@
+streamlit
+requests
+feedparser
+apscheduler
+pandas
+beautifulsoup4
+streamlit-authenticator
+pyyaml
