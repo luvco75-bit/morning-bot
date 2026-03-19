@@ -55,8 +55,22 @@ elif st.session_state.get("authentication_status"):
 
     st.sidebar.header("🔍 관심 키워드 설정")
     default_kw = "삼성전자, SK하이닉스, HBM, K-pop"
-    user_keywords = st.sidebar.text_area("쉼표(,)로 구분해서 입력해 주세요", default_kw)
+
+    # 저장된 키워드 불러오기
+    saved_key = f"saved_keywords_{st.session_state['username']}"
+    if saved_key not in st.session_state:
+        st.session_state[saved_key] = default_kw
+
+    user_keywords = st.sidebar.text_area(
+        "쉼표(,)로 구분해서 입력해 주세요",
+        st.session_state[saved_key],
+        height=200
+    )
     kw_list = [k.strip() for k in user_keywords.split(",") if k.strip()]
+
+    if st.sidebar.button("키워드 저장"):
+        st.session_state[saved_key] = user_keywords
+        st.sidebar.success("키워드가 저장되었습니다!")
 
     if st.button("지금 뉴스 수집하기"):
         with st.spinner('실시간 뉴스를 수집 중입니다...'):

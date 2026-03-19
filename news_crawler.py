@@ -1,6 +1,6 @@
 import feedparser
 
-def get_google_news(keyword, num_results=3):
+def get_google_news(keyword, num_results=5):
     rss_url = f"https://news.google.com/rss/search?q={keyword}&hl=ko&gl=KR&ceid=KR:ko"
     feed = feedparser.parse(rss_url)
     news_items = []
@@ -16,6 +16,6 @@ def fetch_all_categories(keywords):
     results = {}
     # 비타님이 입력하신 키워드들을 하나씩 순회하며 뉴스를 찾습니다. [cite: 2026-03-07]
     for keyword in keywords:
-        items = get_google_news(keyword.strip(), num_results=1)
+        items = get_google_news(keyword.strip(), num_results=5)
         results[keyword.strip()] = items
     return results
