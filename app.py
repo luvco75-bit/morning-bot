@@ -7,25 +7,29 @@ from telegram_sender import send_to_telegram
 import pandas as pd
 from supabase import create_client
 
-# Supabase 연결
 supabase = create_client(
     st.secrets["SUPABASE_URL"],
     st.secrets["SUPABASE_KEY"]
 )
 
 def load_keywords(username):
-    res = supabase.table("user_keywords").select("keywords").eq("username", username).execute()
-    if res.data:
-        return res.data[0]["keywords"]
+    try:
+        res = supabase.table("user_keywords").select("keywords").eq("username", username).execute()
+        if res.data:
+            return res.data[0]["keywords"]
+    except:
+        pass
     return "삼성전자, SK하이닉스, HBM, K-pop"
 
 def save_keywords(username, keywords):
-    supabase.table("user_keywords").upsert({
-        "username": username,
-        "keywords": keywords
-    }).execute()
+    try:
+        supabase.table("user_keywords").upsert({
+            "username": username,
+            "keywords": keywords
+        }).execute()
+    except:
+        pass
 
-# 인증 설정 로드
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
@@ -73,7 +77,6 @@ elif st.session_state.get("authentication_status"):
 
     st.sidebar.header("🔍 관심 키워드 설정")
 
-    # Supabase에서 키워드 불러오기
     saved_key = f"saved_keywords_{st.session_state['username']}"
     if saved_key not in st.session_state:
         st.session_state[saved_key] = load_keywords(st.session_state['username'])
@@ -87,7 +90,7 @@ elif st.session_state.get("authentication_status"):
 
     if st.sidebar.button("키워드 저장"):
         st.session_state[saved_key] = user_keywords
-        save_keywords(st.session_state['username'], user_keywords)  # Supabase에 저장
+        save_keywords(st.session_state['username'], user_keywords)
         st.sidebar.success("키워드가 저장되었습니다!")
 
     if st.button("지금 뉴스 수집하기"):
