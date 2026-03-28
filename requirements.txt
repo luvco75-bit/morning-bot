@@ -6,3 +6,4 @@ pandas
 beautifulsoup4
 streamlit-authenticator
 pyyaml
+supabase
