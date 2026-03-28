@@ -5,6 +5,25 @@ from yaml.loader import SafeLoader
 from news_crawler import fetch_all_categories
 from telegram_sender import send_to_telegram
 import pandas as pd
+from supabase import create_client
+
+# Supabase 연결
+supabase = create_client(
+    st.secrets["SUPABASE_URL"],
+    st.secrets["SUPABASE_KEY"]
+)
+
+def load_keywords(username):
+    res = supabase.table("user_keywords").select("keywords").eq("username", username).execute()
+    if res.data:
+        return res.data[0]["keywords"]
+    return "삼성전자, SK하이닉스, HBM, K-pop"
+
+def save_keywords(username, keywords):
+    supabase.table("user_keywords").upsert({
+        "username": username,
+        "keywords": keywords
+    }).execute()
 
 # 인증 설정 로드
 with open('config.yaml') as file:
@@ -17,7 +36,6 @@ authenticator = stauth.Authenticate(
     config['cookie']['expiry_days'],
 )
 
-# 로그인 / 회원가입 탭
 if not st.session_state.get("authentication_status"):
     st.title("🤖 자비스 모닝봇")
     login_tab, register_tab = st.tabs(["로그인", "회원가입"])
@@ -54,12 +72,11 @@ elif st.session_state.get("authentication_status"):
     st.success("반갑습니다, 좌측 관심 키워드 설정을 통해 원하시는 키워드를 입력하시면 관련 뉴스를 받아보실 수 있습니다.")
 
     st.sidebar.header("🔍 관심 키워드 설정")
-    default_kw = "삼성전자, SK하이닉스, HBM, K-pop"
 
-    # 저장된 키워드 불러오기
+    # Supabase에서 키워드 불러오기
     saved_key = f"saved_keywords_{st.session_state['username']}"
     if saved_key not in st.session_state:
-        st.session_state[saved_key] = default_kw
+        st.session_state[saved_key] = load_keywords(st.session_state['username'])
 
     user_keywords = st.sidebar.text_area(
         "쉼표(,)로 구분해서 입력해 주세요",
@@ -70,17 +87,16 @@ elif st.session_state.get("authentication_status"):
 
     if st.sidebar.button("키워드 저장"):
         st.session_state[saved_key] = user_keywords
+        save_keywords(st.session_state['username'], user_keywords)  # Supabase에 저장
         st.sidebar.success("키워드가 저장되었습니다!")
 
     if st.button("지금 뉴스 수집하기"):
         with st.spinner('실시간 뉴스를 수집 중입니다...'):
             news_data = fetch_all_categories(kw_list)
-
             flattened_news = []
             for category, items in news_data.items():
                 for item in items:
                     flattened_news.append({"카테고리": category, "제목": item['title'], "링크": item['link']})
-
             if flattened_news:
                 st.session_state['news_results'] = flattened_news
                 st.table(pd.DataFrame(flattened_news))
